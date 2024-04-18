@@ -1,0 +1,148 @@
+description: DRP Pipeline for RomanDESC simulations of LSSTCam
+instrument: lsst.obs.lsst.LsstCam
+imports:
+  - $DRP_PIPE_DIR/pipelines/_ingredients/DRP-minimal-calibration.yaml
+
+tasks:
+  isr:
+    class: lsst.ip.isr.IsrTask
+    config:
+      connections.newBFKernel: bfk
+      doDefect: false
+      doBrighterFatter: true
+      doBias: true
+      doDark: true
+      doFlat: true
+      doLinearize: false
+      doFringe: false
+      doCrosstalk: false
+  characterizeImage:
+    class: lsst.pipe.tasks.characterizeImage.CharacterizeImageTask
+  calibrate:
+    class: lsst.pipe.tasks.calibrate.CalibrateTask
+    config:
+      connections.astromRefCat: "uw_stars_aug_2021_tp"
+      connections.photoRefCat: "uw_stars_aug_2021_tp"
+      python: |
+        config.photoCal.applyColorTerms = False
+        config.photoCal.match.referenceSelection.magLimit.fluxField = "lsst_i_flux"
+
+        config.astromRefObjLoader.filterMap = {band: 'lsst_%s' % (band) for band in 'ugrizy'}
+        config.astromRefObjLoader.anyFilterMapsToThis = None
+        config.photoRefObjLoader.filterMap = {band: 'lsst_%s' % (band) for band in 'ugrizy'}
+
+subsets:
+  step1:
+    subset:
+      - isr
+      - characterizeImage
+      - calibrate
+      - writeSourceTable
+      - transformSourceTable
+    description: |
+      Per-detector tasks that can be run together to start the DRP pipeline.
+
+      These may or may not be run with 'tract' or 'patch' as part of the data
+      ID expression. This specific pipeline contains no tasks that require
+      full visits. Running with 'tract' (and 'patch') constraints will select
+      partial visits that overlap that region.
+
+      In data release processing, operators should stop to address unexpected
+      failures before continuing on to step2.
+  step2:
+    subset:
+      - consolidateSourceTable
+      - consolidateVisitSummary
+      - isolatedStarAssociation
+      - finalizeCharacterization
+      - makeCcdVisitTable
+      - makeVisitTable
+      - updateVisitSummary
+    description: |
+      Tasks that can be run together, but only after the 'step1'.
+
+      This is a mix of visit-level, tract-level, and collection-level tasks
+      that must be run with a skymap data query constraint only (an instrument
+      constraint is fine, but generally unneccessary).  For example, running
+      with 'tract' (and 'patch') constraints will select partial visits that
+      overlap that region.  A skymap constraint is necessary to prevent
+      isolatedStarAssociation from producing results for all skymaps in the
+      data repository.
+
+      Visit-level tasks include consolidateSourceTable,
+      consolidateVisitSummary,
+      finalizeCharacterization, updateVisitSummary.
+      Tract-level tasks include: isolatedStarAssociation
+      Full collection-level tasks include: makeCcdVisitTable, makeVisitTable
+
+  step3:
+    subset:
+      - makeWarp
+      - selectDeepCoaddVisits
+      - assembleCoadd
+      - detection
+      - mergeDetections
+      - deblend
+      - measure
+      - mergeMeasurements
+      - forcedPhotCoadd
+      - transformObjectTable
+      - writeObjectTable
+      - consolidateObjectTable
+      - healSparsePropertyMaps
+      - selectGoodSeeingVisits
+      - templateGen
+    description: |
+      Tasks that can be run together, but only after the 'step1' and 'step2'
+      subsets.
+
+      These should be run with explicit 'tract' constraints
+      essentially all the time, because otherwise quanta will be
+      created for jobs with only partial visit coverage.
+
+      It is expected that many forcedPhotCcd quanta will "normally"
+      fail when running this subset, but this isn't a problem right
+      now because there are no tasks downstream of it.  If other tasks
+      regularly fail or we add tasks downstream of forcedPhotCcd,
+      these subsets or the tasks will need additional changes.
+
+      This subset is considered a workaround for missing middleware and task
+      functionality.  It may be removed in the future.
+  step4:
+    subset:
+      - forcedPhotCcd
+      - forcedPhotDiffim
+      - getTemplate
+      - subtractImages
+      - detectAndMeasureDiaSources
+      - transformDiaSourceCat
+      - writeForcedSourceTable
+    description: |
+      Tasks that can be run together, but only after the 'step1', 'step2' and
+      'step3' subsets
+
+      These detector-level tasks should not be run with 'tract' or 'patch' as
+      part of the data ID expression if all reference catalogs or diffIm
+      templates that cover these detector-level quanta are desired.
+  step5:
+    subset:
+      - drpAssociation
+      - drpDiaCalculation
+      - forcedPhotCcdOnDiaObjects
+      - forcedPhotDiffOnDiaObjects
+      - transformForcedSourceTable
+      - consolidateForcedSourceTable
+      - consolidateAssocDiaSourceTable
+      - consolidateFullDiaObjectTable
+      - writeForcedSourceOnDiaObjectTable
+      - transformForcedSourceOnDiaObjectTable
+      - consolidateForcedSourceOnDiaObjectTable
+    description: |
+      Tasks that can be run together, but only after the 'step1', 'step2',
+      'step3', and 'step4' subsets
+
+      This step includes patch-level aggregation Tasks. These should be run
+      with explicit 'tract' constraints in the data query, otherwise quanta
+      will be created for jobs with only partial visit coverage.
+      'consolidateForcedSourceTable' is a tract-level task that aggregates
+      patches and should be rerun if any of the patches fail.

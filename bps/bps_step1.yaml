@@ -1,0 +1,20 @@
+includeConfigs:
+  - ${GEN3_WORKFLOW_DIR}/python/desc/gen3_workflow/etc/bps_drp_baseline.yaml
+  - ${PWD}/bps_parsl_config.yaml
+
+pipelineYaml: "${PWD}/drp.yaml#step1"
+instrument: LsstCam
+
+clusterAlgorithm: lsst.ctrl.bps.quantum_clustering_funcs.dimension_clustering
+cluster:
+  visit_detector:
+    pipetasks: isr,characterizeImage,calibrate,writeSourceTable,transformSourceTable
+    dimensions: visit,detector
+    equalDimensions: visit:exposure
+
+payload:
+  weekly: ${WEEKLY}
+  inCollection: u/descdm/preview_data/defaults
+  payloadName: preview_data_step1_{weekly}
+  butlerConfig: /global/cfs/cdirs/lsst/production/gen3/roman-desc-sims/repo
+  dataQuery: "instrument='LSSTCam'"

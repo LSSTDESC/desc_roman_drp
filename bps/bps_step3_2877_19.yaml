@@ -1,0 +1,13 @@
+includeConfigs:
+  - ${GEN3_WORKFLOW_DIR}/python/desc/gen3_workflow/etc/bps_drp_baseline.yaml
+  - ${PWD}/bps_parsl_config.yaml
+
+pipelineYaml: "${PWD}/drp.yaml#step3"
+instrument: LsstCam
+
+payload:
+  weekly: ${WEEKLY}
+  inCollection: u/descdm/preview_data_step2_{weekly}
+  payloadName: preview_data_step3_2877_19_{weekly}
+  butlerConfig: /global/cfs/cdirs/lsst/production/gen3/roman-desc-sims/repo
+  dataQuery: "instrument='LSSTCam' and skymap='DC2' and tract=2877 and patch=19"
