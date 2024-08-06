@@ -21,8 +21,8 @@ tasks:
   calibrate:
     class: lsst.pipe.tasks.calibrate.CalibrateTask
     config:
-      connections.astromRefCat: "uw_stars_aug_2021_tp"
-      connections.photoRefCat: "uw_stars_aug_2021_tp"
+      connections.astromRefCat: "uw_stars_20240529_tp_aug_2021_downselect"
+      connections.photoRefCat: "uw_stars_20240529_tp_aug_2021_downselect"
       python: |
         config.photoCal.applyColorTerms = False
         config.photoCal.match.referenceSelection.magLimit.fluxField = "lsst_i_flux"
@@ -33,7 +33,7 @@ tasks:
   measure:
     class: lsst.pipe.tasks.multiBand.MeasureMergedCoaddSourcesTask
     config:
-      connections.refCat: "uw_stars_aug_2021_tp"
+      connections.refCat: "uw_stars_20240529_tp_aug_2021_downselect"
 subsets:
   step1:
     subset:
