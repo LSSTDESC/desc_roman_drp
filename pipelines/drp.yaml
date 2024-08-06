@@ -52,31 +52,44 @@ subsets:
 
       In data release processing, operators should stop to address unexpected
       failures before continuing on to step2.
-  step2:
+  step2a:
     subset:
       - consolidateSourceTable
       - consolidateVisitSummary
+    description: |
+      Tasks that should be run after the 'step1'.
+      These are visit-level tasks and can be partitioned among visits.
+
+  step2b:
+    subset:
       - isolatedStarAssociation
+    description: |
+      Tract-level task, so can be partitioned among tracts.
+      Conventionally, all of the step2a visit-level tasks would feed
+      into this.  This requires a skymap constraint to prevent
+      isolatedStarAssociation from producing results for all skymaps
+      in the data repository.
+
+#  step2c:
+#    subset:
+#    description: |
+#      This step would normally include fgcm and gbdes, but for the RomanDESC
+#      sims, the global calibration steps aren't expected to be needed.
+
+  step2d:
+    subset:
       - finalizeCharacterization
       - makeCcdVisitTable
+    description: |
+      Visit-level tasks to be run after step2b(c).
+
+  step2e:
+    subset:
       - makeVisitTable
       - updateVisitSummary
     description: |
-      Tasks that can be run together, but only after the 'step1'.
-
-      This is a mix of visit-level, tract-level, and collection-level tasks
-      that must be run with a skymap data query constraint only (an instrument
-      constraint is fine, but generally unneccessary).  For example, running
-      with 'tract' (and 'patch') constraints will select partial visits that
-      overlap that region.  A skymap constraint is necessary to prevent
-      isolatedStarAssociation from producing results for all skymaps in the
-      data repository.
-
-      Visit-level tasks include consolidateSourceTable,
-      consolidateVisitSummary,
-      finalizeCharacterization, updateVisitSummary.
-      Tract-level tasks include: isolatedStarAssociation
-      Full collection-level tasks include: makeCcdVisitTable, makeVisitTable
+      These are collection-level tasks, so there should be one quantum each
+      for the entire dataset.
 
   step3:
     subset:
