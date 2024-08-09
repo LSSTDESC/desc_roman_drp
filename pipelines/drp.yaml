@@ -73,20 +73,20 @@ subsets:
 #  step2c:
 #    subset:
 #    description: |
-#      This step would normally include fgcm and gbdes, but for the RomanDESC
+#      This step would normally include fgcm tasks, but for the RomanDESC
 #      sims, the global calibration steps aren't expected to be needed.
 
   step2d:
     subset:
       - finalizeCharacterization
-      - makeCcdVisitTable
+      - updateVisitSummary
     description: |
       Visit-level tasks to be run after step2b(c).
 
   step2e:
     subset:
+      - makeCcdVisitTable
       - makeVisitTable
-      - updateVisitSummary
     description: |
       These are collection-level tasks, so there should be one quantum each
       for the entire dataset.
