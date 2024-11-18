@@ -34,6 +34,8 @@ tasks:
     class: lsst.pipe.tasks.multiBand.MeasureMergedCoaddSourcesTask
     config:
       connections.refCat: "uw_stars_20240529_tp_aug_2021_downselect"
+      python: |
+        config.match.refObjLoader.filterMap = {band: 'lsst_%s' % (band) for band in 'ugrizy'}
 subsets:
   step1:
     subset:
