@@ -30,6 +30,14 @@ tasks:
         config.astromRefObjLoader.filterMap = {band: 'lsst_%s' % (band) for band in 'ugrizy'}
         config.astromRefObjLoader.anyFilterMapsToThis = None
         config.photoRefObjLoader.filterMap = {band: 'lsst_%s' % (band) for band in 'ugrizy'}
+  isolatedStarAssociation:
+    class: lsst.pipe.tasks.isolatedStarAssociation.IsolatedStarAssociationTask
+## Uncomment the following lines to reduce the memory usage of this task at the cost of
+## longer runtimes.  See DM-45773 (https://github.com/lsst/pipe_tasks/pull/969)
+#    config:
+#      nside_split: 256
+#      python: |
+#        config.source_selector['science'].signalToNoise.minimum = 100.0
   measure:
     class: lsst.pipe.tasks.multiBand.MeasureMergedCoaddSourcesTask
     config:
