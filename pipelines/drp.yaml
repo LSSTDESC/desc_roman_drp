@@ -34,6 +34,8 @@ tasks:
     class: lsst.pipe.tasks.multiBand.MeasureMergedCoaddSourcesTask
     config:
       connections.refCat: "uw_stars_20240529_tp_aug_2021_downselect"
+      python: |
+        config.match.refObjLoader.filterMap = {band: 'lsst_%s' % (band) for band in 'ugrizy'}
 subsets:
   step1:
     subset:
@@ -91,7 +93,7 @@ subsets:
       These are collection-level tasks, so there should be one quantum each
       for the entire dataset.
 
-  step3:
+  step3a:
     subset:
       - makeWarp
       - selectDeepCoaddVisits
@@ -99,18 +101,27 @@ subsets:
       - detection
       - mergeDetections
       - deblend
+      - healSparsePropertyMaps
+      - selectGoodSeeingVisits
+      - templateGen
+    description: |
+      Multiband and DIA-related tasks up to 'measure'
+      These can be run together, but only after the 'step1' and 'step2'
+      subsets.
+
+      These should be run with explicit 'tract' constraints
+      essentially all the time, because otherwise quanta will be
+      created for jobs with only partial visit coverage.
+  step3b:
+    subset:
       - measure
       - mergeMeasurements
       - forcedPhotCoadd
       - transformObjectTable
       - writeObjectTable
       - consolidateObjectTable
-      - healSparsePropertyMaps
-      - selectGoodSeeingVisits
-      - templateGen
     description: |
-      Tasks that can be run together, but only after the 'step1' and 'step2'
-      subsets.
+      Multiband tasks from measure onwards.
 
       These should be run with explicit 'tract' constraints
       essentially all the time, because otherwise quanta will be
@@ -121,9 +132,6 @@ subsets:
       now because there are no tasks downstream of it.  If other tasks
       regularly fail or we add tasks downstream of forcedPhotCcd,
       these subsets or the tasks will need additional changes.
-
-      This subset is considered a workaround for missing middleware and task
-      functionality.  It may be removed in the future.
   step4:
     subset:
       - forcedPhotCcd
