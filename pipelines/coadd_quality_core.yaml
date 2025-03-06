@@ -16,6 +16,7 @@ tasks:
     class: lsst.analysis.tools.tasks.refCatObjectAnalysis.RefCatObjectAnalysisTask
     config:
       connections.data: objectTable_tract_uw_stars_20240529_tp_aug_2021_downselect_match
+      connections.outputName: objectTable_tract_uw_stars_20240529_tp_aug_2021_downselect_match
   photometricCatalogMatch:
     class: lsst.analysis.tools.tasks.photometricCatalogMatch.PhotometricCatalogMatchTask
     config:
@@ -29,3 +30,4 @@ tasks:
     class: lsst.analysis.tools.tasks.refCatObjectPhotometricAnalysis.RefCatObjectPhotometricAnalysisTask
     config:
       connections.data: objectTable_tract_uw_stars_20240529_tp_aug_2021_downselect_photoMatch
+      connections.outputName: objectTable_tract_uw_stars_20240529_tp_aug_2021_downselect_photoMatch
