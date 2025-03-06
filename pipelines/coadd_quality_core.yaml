@@ -1,0 +1,33 @@
+description: Pipeline for running analysis_tools coaddQualityCore tasks
+imports:
+  - ${ANALYSIS_TOOLS_DIR}/pipelines/coaddQualityCore.yaml
+
+tasks:
+  catalogMatchTract:
+    class: lsst.analysis.tools.tasks.astrometricCatalogMatch.AstrometricCatalogMatchTask
+    config:
+      connections.refCat: uw_stars_20240529_tp_aug_2021_downselect
+      connections.refCatalog: uw_stars_20240529_tp_aug_2021_downselect
+      python: |
+         config.referenceCatalogLoader.refObjLoader.anyFilterMapsToThis = None
+         config.referenceCatalogLoader.refObjLoader.filterMap = {band: 'lsst_%s' % (band) for band in 'ugrizy'}
+
+  refCatObjectTract:
+    class: lsst.analysis.tools.tasks.refCatObjectAnalysis.RefCatObjectAnalysisTask
+    config:
+      connections.data: objectTable_tract_uw_stars_20240529_tp_aug_2021_downselect_match
+      connections.outputName: objectTable_tract_uw_stars_20240529_tp_aug_2021_downselect_match
+  photometricCatalogMatch:
+    class: lsst.analysis.tools.tasks.photometricCatalogMatch.PhotometricCatalogMatchTask
+    config:
+      connections.refCatalog: uw_stars_20240529_tp_aug_2021_downselect
+      connections.matchedCatalog: objectTable_tract_uw_stars_20240529_tp_aug_2021_downselect_photoMatch
+      referenceCatalogLoader.doApplyColorTerms: false
+      python: |
+         config.referenceCatalogLoader.refObjLoader.anyFilterMapsToThis = None
+         config.referenceCatalogLoader.refObjLoader.filterMap = {band: 'lsst_%s' % (band) for band in 'ugrizy'}
+  photometricRefCatObjectTract:
+    class: lsst.analysis.tools.tasks.refCatObjectPhotometricAnalysis.RefCatObjectPhotometricAnalysisTask
+    config:
+      connections.data: objectTable_tract_uw_stars_20240529_tp_aug_2021_downselect_photoMatch
+      connections.outputName: objectTable_tract_uw_stars_20240529_tp_aug_2021_downselect_photoMatch
